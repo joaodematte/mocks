@@ -88,6 +88,7 @@ const usageExampleData = `fetch("https://api.mocky.dev/v3/wqptvrwrk0i73rk00oeysr
   .then(data => console.log(data))
   .catch(error => console.error(error))`;
 
+// This component is reused and improves performance by avoiding repeated state logic
 interface CopyToClipboardProps {
   children: (props: { copy: () => Promise<void>; isCopying: boolean; hasCopied: boolean }) => React.ReactNode;
   textToCopy: string;
@@ -128,6 +129,8 @@ function CopyToClipboard({ children, textToCopy }: CopyToClipboardProps) {
 }
 
 export default function MockPreview() {
+  const endpoint = 'https://api.mocks.dev/v1/5qgc85n6fewfg4xmo5dzms';
+
   return (
     <Card>
       <CardHeader>
@@ -162,8 +165,8 @@ export default function MockPreview() {
             <div className="space-y-1.5">
               <Label>Your mock API endpoint</Label>
               <div className="flex gap-1">
-                <Input value="https://api.mocks.dev/v1/5qgc85n6fewfg4xmo5dzms" readOnly />
-                <CopyToClipboard textToCopy="https://api.mocks.dev/v1/5qgc85n6fewfg4xmo5dzms">
+                <Input value={endpoint} readOnly />
+                <CopyToClipboard textToCopy={endpoint}>
                   {({ copy, isCopying }) => (
                     <Button size="icon" variant="outline" disabled={isCopying} onClick={copy}>
                       <Copy className="size-4" strokeWidth={2.5} />

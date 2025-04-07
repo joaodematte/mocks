@@ -1,7 +1,7 @@
 'use client';
 
 import Editor from '@monaco-editor/react';
-import { useForm, useStore } from '@tanstack/react-form';
+import { useForm } from '@tanstack/react-form';
 import { CircleAlert, Sliders } from 'lucide-react';
 import { z } from 'zod';
 
@@ -54,13 +54,12 @@ export default function MockSettings() {
     }
   });
 
-  const interfaces = useStore(form.store, (state) => state.values.interfaces);
-
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
+
         form.handleSubmit();
       }}
     >
@@ -112,7 +111,9 @@ export default function MockSettings() {
 
           <form.Field name="mockInterface">
             {(field) => {
-              const parsedInterfaces = [...interfaces.matchAll(/interface\s+(\w+)/g)].map((match) => match[1]);
+              const parsedInterfaces = [...field.form.state.values.interfaces.matchAll(/interface\s+(\w+)/g)].map(
+                (match) => match[1]
+              );
               const error = field.state.meta.errors[0]?.message;
 
               return (
