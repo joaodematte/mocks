@@ -3,6 +3,8 @@ import { Geist_Mono, Lexend_Deca } from 'next/font/google';
 
 import '@/styles/globals.css';
 
+import { Providers } from '@/app/providers';
+import { Toaster } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
 
 const fontSans = Lexend_Deca({
@@ -27,7 +29,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn(fontSans.variable, fontMono.variable, 'min-h-dvh w-full px-4 py-12 font-sans antialiased')}>
-        {children}
+        <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );

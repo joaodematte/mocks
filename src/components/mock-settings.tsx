@@ -1,10 +1,13 @@
 'use client';
 
 import Editor from '@monaco-editor/react';
-import { useForm } from '@tanstack/react-form';
-import { CircleAlert, Sliders } from 'lucide-react';
+import { useForm, useStore } from '@tanstack/react-form';
+import { useMutation } from '@tanstack/react-query';
+import { CircleAlert, LoaderCircle, Sliders } from 'lucide-react';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { useMock } from '@/components/mock-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
@@ -15,11 +18,13 @@ import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
 const mockSettingsSchema = z.object({
-  interfaces: z.string().min(1, 'Interfaces is required.'),
+  mockInterfaces: z.string().min(1, 'Interfaces is required.'),
   mockInterface: z.string().min(1, 'Mock Interface is required.'),
   mockSize: z.number().min(1, 'Mock size must be at least 1.').max(100, 'Mock size cannot exceed 100'),
-  apiThrottling: z.number().max(5000, 'API throttling cannot exceed 5000ms.')
+  throttling: z.number().max(5000, 'API throttling cannot exceed 5000ms.')
 });
+
+type MockSettingsSchema = z.infer<typeof mockSettingsSchema>;
 
 function LoadingMonacoEditor() {
   return (
@@ -39,20 +44,36 @@ function LoadingMonacoEditor() {
 }
 
 export default function MockSettings() {
+  const { setMock } = useMock();
+
+  const { mutateAsync, isPending } = useMutation({
+    mutationKey: ['mock'],
+    mutationFn: (value: MockSettingsSchema) =>
+      fetch('/api/generate-mock', { method: 'POST', body: JSON.stringify(value) }).then((res) => res.json()),
+    onSuccess: (value) => {
+      setMock(value);
+    }
+  });
+
   const form = useForm({
     onSubmit({ value }) {
-      console.log(value);
+      toast.promise(async () => await mutateAsync(value), {
+        loading: 'Generating mock endpoint...',
+        success: 'Mock endpoint generated with success!'
+      });
     },
     defaultValues: {
-      interfaces: '',
+      mockInterfaces: '',
       mockInterface: '',
       mockSize: 10,
-      apiThrottling: 0
+      throttling: 0
     },
     validators: {
       onChange: mockSettingsSchema
     }
   });
+
+  const mockInterfaces = useStore(form.store, (form) => form.values.mockInterfaces);
 
   return (
     <form
@@ -69,13 +90,13 @@ export default function MockSettings() {
           <CardDescription>Enter your TypeScript interface, set the size and throttling options</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <form.Field name="interfaces">
+          <form.Field name="mockInterfaces">
             {(field) => {
               const error = field.state.meta.errors[0]?.message;
 
               return (
                 <div className="space-y-1.5">
-                  <Label htmlFor="interfaces" className={cn(error && 'text-red-500')}>
+                  <Label htmlFor="mockInterfaces" className={cn(error && 'text-red-500')}>
                     Define your Interfaces
                   </Label>
                   <Editor
@@ -111,9 +132,7 @@ export default function MockSettings() {
 
           <form.Field name="mockInterface">
             {(field) => {
-              const parsedInterfaces = [...field.form.state.values.interfaces.matchAll(/interface\s+(\w+)/g)].map(
-                (match) => match[1]
-              );
+              const parsedInterfaces = [...mockInterfaces.matchAll(/interface\s+(\w+)/g)].map((match) => match[1]);
               const error = field.state.meta.errors[0]?.message;
 
               return (
@@ -177,13 +196,13 @@ export default function MockSettings() {
             }}
           </form.Field>
 
-          <form.Field name="apiThrottling">
+          <form.Field name="throttling">
             {(field) => {
               const error = field.state.meta.errors[0]?.message;
 
               return (
                 <div className="space-y-1.5">
-                  <Label htmlFor="apiThrottling">
+                  <Label htmlFor="throttling">
                     API Throttling (ms) <span className="text-muted-foreground">— {field.state.value}ms</span>
                   </Label>
                   <div className="flex items-center gap-2">
@@ -210,8 +229,8 @@ export default function MockSettings() {
           </form.Field>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full">
-            Generate mock API
+          <Button type="submit" className="w-full active:scale-95" disabled={isPending}>
+            {isPending ? <LoaderCircle className="size-4 animate-spin" /> : 'Generate mock API'}
           </Button>
         </CardFooter>
       </Card>
