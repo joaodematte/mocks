@@ -7,7 +7,7 @@ interface Params {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(req: Request, { params }: Params) {
+export async function GET(_: Request, { params }: Params) {
   const { id } = await params;
 
   const exists = await db.select().from(mock).limit(1).where(eq(mock.id, id));
@@ -24,5 +24,5 @@ export async function GET(req: Request, { params }: Params) {
     });
   }
 
-  return Response.json(result.data, { status: 200 });
+  return Response.json(result.content, { status: 200 });
 }

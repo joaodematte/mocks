@@ -1,17 +1,15 @@
 import { openai } from '@ai-sdk/openai';
-import { generateText } from 'ai';
+import { streamText } from 'ai';
+import { z } from 'zod';
 
-import { db } from '@/lib/db';
-import { mock } from '@/lib/db/schema';
+const RequestDataSchema = z.object({
+  interfaces: z.string(),
+  targetInterface: z.string(),
+  size: z.number().positive().int(),
+  throttling: z.number().optional()
+});
 
-interface RequestData {
-  mockInterfaces: string;
-  mockInterface: string;
-  mockSize: number;
-  throttling?: number;
-}
-
-export const maxDuration = 60;
+export const runtime = 'edge';
 
 const prompt = (mockInterfaces: string, mockInterface: string, size: number) => `
 You are a TypeScript mock data generator. Your task is to create realistic mock data based on the provided TypeScript interfaces, formatted as a JSON array suitable for a REST API endpoint.
@@ -57,16 +55,24 @@ Example format:
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const data = body as RequestData;
 
-    const promptMessage = prompt(data.mockInterfaces, data.mockInterface, data.mockSize);
+    const result = RequestDataSchema.safeParse(body);
 
-    const { text: generatedJsonMock } = await generateText({
+    if (!result.success) {
+      return Response.json({ error: 'Invalid request data', details: result.error.format() }, { status: 400 });
+    }
+
+    const data = result.data;
+
+    const promptMessage = prompt(data.interfaces, data.targetInterface, data.size);
+
+    const stream = streamText({
       model: openai('gpt-4o-mini'),
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that generates TypeScript mock data in JSON format.'
+          content:
+            'You are a strict TypeScript mock generator. Output only JSON arrays, no Markdown code fences or extra text. Obey the user prompt precisely'
         },
         {
           role: 'user',
@@ -75,24 +81,9 @@ export async function POST(req: Request) {
       ]
     });
 
-    const dbData = await db
-      .insert(mock)
-      .values({
-        data: generatedJsonMock,
-        mockInterfaces: data.mockInterfaces,
-        mockInterface: data.mockInterface,
-        mockSize: data.mockSize,
-        throttling: data.throttling
-      })
-      .returning();
-
-    if (dbData.length === 0) {
-      return Response.json({ error: 'Failed to generate mocks' }, { status: 500 });
-    }
-
-    return Response.json(dbData[0], { status: 201 });
+    return stream.toTextStreamResponse();
   } catch (error) {
-    console.error('Error generating mocks:', error);
-    return Response.json({ error: 'Failed to generate mocks' }, { status: 500 });
+    console.error('Error generating mock:', error);
+    return Response.json({ error: 'Failed to generate mock' }, { status: 500 });
   }
 }

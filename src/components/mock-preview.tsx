@@ -28,7 +28,7 @@ export default function MockPreview() {
   if (mock) {
     usageExample = createUsageExampleString(mock.id);
     endpoint = createEndpoint(mock.id);
-    parsedData = JSON.stringify(mock.data, null, 2);
+    parsedData = JSON.stringify(mock.content, null, 2);
   }
 
   return (
@@ -90,24 +90,7 @@ export default function MockPreview() {
               <div className="space-y-1.5">
                 <Label>Usage example</Label>
 
-                <pre className="group bg-muted relative overflow-auto rounded-md border p-4">
-                  <CopyToClipboard toCopy={usageExample}>
-                    {({ copy, isCopying, hasCopied }) => (
-                      <div className="absolute inset-y-0 right-0 h-fit w-fit">
-                        <Button
-                          className="fixed opacity-0 group-hover:opacity-100"
-                          size="icon"
-                          variant="outline"
-                          disabled={isCopying || hasCopied}
-                          onClick={copy}
-                        >
-                          <Copy className="size-4" strokeWidth={2.5} />
-                        </Button>
-                      </div>
-                    )}
-                  </CopyToClipboard>
-                  {usageExample}
-                </pre>
+                <pre className="bg-muted relative overflow-auto rounded-md border p-4">{usageExample}</pre>
               </div>
             </TabsContent>
           </Tabs>
