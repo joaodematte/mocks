@@ -18,7 +18,24 @@ const fontMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'mocks'
+  title: 'mocks',
+  description: 'Generate mock APIs from TypeScript interfaces to unblock your frontend development',
+  twitter: {
+    site: '@joaodematte',
+    creator: '@joaodematte',
+    card: 'summary_large_image',
+    title: 'mocks',
+    description: 'Generate mock APIs from TypeScript interfaces to unblock your frontend development',
+    images: ['/metaimage.png']
+  },
+  openGraph: {
+    title: 'mocks',
+    description: 'Generate mock APIs from TypeScript interfaces to unblock your frontend development',
+    siteName: 'joão dematte',
+    url: 'https://joaodematte.com/',
+    type: 'website',
+    images: ['/metaimage.png']
+  }
 };
 
 export default function RootLayout({
