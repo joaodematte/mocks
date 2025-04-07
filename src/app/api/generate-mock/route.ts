@@ -11,6 +11,8 @@ interface RequestData {
   throttling?: number;
 }
 
+export const maxDuration = 60;
+
 const prompt = (mockInterfaces: string, mockInterface: string, size: number) => `
 You are a TypeScript mock data generator. Your task is to create realistic mock data based on the provided TypeScript interfaces, formatted as a JSON array suitable for a REST API endpoint.
 
