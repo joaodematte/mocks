@@ -5,8 +5,8 @@ import { z } from 'zod';
 const RequestDataSchema = z.object({
   interfaces: z.string(),
   targetInterface: z.string(),
-  size: z.number().positive().int(),
-  throttling: z.number().optional()
+  size: z.number().positive().int().max(100),
+  throttling: z.number().max(5000).optional()
 });
 
 export const runtime = 'edge';
