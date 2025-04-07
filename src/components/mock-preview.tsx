@@ -25,8 +25,6 @@ export default function MockPreview() {
   let endpoint = '';
   let parsedData = '';
 
-  console.log({ mock });
-
   if (mock) {
     usageExample = createUsageExampleString(mock.id);
     endpoint = createEndpoint(mock.id);
